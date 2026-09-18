@@ -14,6 +14,7 @@ A single static landing page that collects waitlist signups over `mailto:`.
 index.html          the whole page (no build step, no dependencies to install)
 assets/erduo.png    logo, also used as favicon and apple-touch-icon
 assets/erduo-email.png  240px logo for the reply email, 76KB rather than 460KB
+assets/erduo-card.jpg   1200x630 link preview card, JPEG so chat apps fetch it
 CNAME               binds the GitHub Pages site to erduo.ai
 .nojekyll           publish the files as they are, skipping Jekyll
 waitlist/           Gmail automation, not part of the published site
