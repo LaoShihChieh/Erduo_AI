@@ -98,9 +98,11 @@ function handleThread_(thread, done, signup) {
 /* ---------------------------------------------------------------- parsing */
 
 /**
- * Pulls the name out of "Hi, this is NAME. I'd love to be on the waitlist!".
- * Deliberately lenient about the wording, strict about the length, since this
- * text arrives from outside and goes into an email we send.
+ * Pulls the name out of "Hi Erduo, this is NAME. I'd love to be on the
+ * waitlist!". Matching only on "this is NAME." keeps earlier signups working,
+ * since the greeting was added to the page later. Deliberately lenient about
+ * the wording, strict about the length, since this text arrives from outside
+ * and goes into an email we send.
  */
 function extractName_(body) {
   if (!body) return '';
@@ -139,8 +141,7 @@ function plainReply_(name) {
     '',
     'Erduo is a listening ear. It stays quiet in the background, notices the',
     'conversations worth keeping, and pairs them with the photos you took at',
-    'the time. We will write when there is something real for you to try, and',
-    'not before.',
+    'the time. We will write when there is something real for you to try.',
     '',
     'If you ever want off the list, reply to this message and say so.',
     '',
@@ -161,7 +162,7 @@ function htmlReply_(name) {
     '<p>You are on the list. Thank you for being early.</p>',
     '<p>Erduo is a listening ear. It stays quiet in the background, notices the ',
     'conversations worth keeping, and pairs them with the photos you took at the ',
-    'time. We will write when there is something real for you to try, and not before.</p>',
+    'time. We will write when there is something real for you to try.</p>',
     '<p>If you ever want off the list, reply to this message and say so.</p>',
     '<p style="color:#3f6579">Quietly yours,<br>Erduo<br>',
     '<a href="https://erduo.ai" style="color:#1b5ea8">erduo.ai</a></p>',

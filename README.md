@@ -56,7 +56,7 @@ everything pre-filled, so the only thing left to do is press send:
 
 - **To:** `hi@erduo.ai`
 - **Subject:** `Erduo waitlist`
-- **Body:** `Hi, this is <name>. I'd love to be on the waitlist!`
+- **Body:** `Hi Erduo, this is <name>. I'd love to be on the waitlist!`
 
 If no mail client picks up the `mailto:` link, the page reveals a fallback panel with a
 direct link and a "copy the message" button.
