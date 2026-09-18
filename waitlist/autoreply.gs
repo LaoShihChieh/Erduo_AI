@@ -192,10 +192,20 @@ function logToSheet_(name, address, date) {
     sheet.setFrozenRows(1);
   }
 
-  sheet.appendRow([date, name, address]);
+  sheet.appendRow([date, sheetSafe_(name), sheetSafe_(address)]);
 }
 
 /* ----------------------------------------------------------------- plumbing */
+
+/**
+ * Sheets treats a leading =, +, - or @ as the start of a formula, so a signup
+ * called "=HYPERLINK(...)" would become a live link in the list. Prefixing an
+ * apostrophe keeps the cell as text.
+ */
+function sheetSafe_(text) {
+  var s = String(text);
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
 
 function getOrCreateLabel_(name) {
   return GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name);
