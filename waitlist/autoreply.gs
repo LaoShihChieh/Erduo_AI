@@ -44,6 +44,9 @@ var CONFIG = {
   SHEET_ID: '',
   SHEET_NAME: 'Waitlist',
 
+  // Tab the web app writes to when someone starts a signup on the page.
+  STARTS_SHEET: 'Starts',
+
   // Ceiling per run, so a backlog or a loop cannot burn the daily send quota
   // in one go.
   MAX_PER_RUN: 40,
@@ -333,6 +336,56 @@ function replyAlias_() {
 
 function getOrCreateLabel_(name) {
   return GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name);
+}
+
+/* ------------------------------------------------------------- web app */
+
+/**
+ * Endpoint for the landing page. The page beacons here when someone taps the
+ * button, a moment before the mail client takes over, so the sheet records how
+ * many signups were started and not only how many arrived. Without it a signup
+ * that is begun and abandoned is invisible, and there is no way to tell a page
+ * nobody visits from a flow that leaks.
+ *
+ * To deploy: Apps Script > Deploy > New deployment > Web app, with
+ * "Execute as: Me" and "Who has access: Anyone". Copy the /exec URL into
+ * COUNT_URL on the landing page. Re-deploy after editing, since a web app
+ * serves the code as of its last deployment.
+ *
+ * It records a timestamp and nothing else: no name, no address, no identifier.
+ * The point is a denominator, not a profile.
+ *
+ * The URL is public and sits in the page source, so this count is soft and
+ * could be inflated by anyone who cared to. The number of replies sent stays
+ * hard, because each one answers a real message from a real mailbox. Treat
+ * starts as a rough denominator and sends as the truth.
+ */
+function doPost(e) {
+  try {
+    var body = e && e.postData ? String(e.postData.contents || '') : '';
+    // Ignore anything that is not the one message the page sends. Stops
+    // generic crawler posts from filling the tab with noise.
+    if (body.slice(0, 5) === 'start') recordStart_();
+  } catch (err) {
+    console.error('Could not record a start: ' + err);
+  }
+  // Always a bare 200. The page cannot read the response and does not need to.
+  return ContentService.createTextOutput('');
+}
+
+function recordStart_() {
+  if (!CONFIG.SHEET_ID || !CONFIG.STARTS_SHEET) return;
+
+  var book = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  var sheet = book.getSheetByName(CONFIG.STARTS_SHEET) ||
+              book.insertSheet(CONFIG.STARTS_SHEET);
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Started']);
+    sheet.setFrozenRows(1);
+  }
+
+  sheet.appendRow([new Date()]);
 }
 
 /** Run once by hand. Safe to re-run: it clears its own older triggers first. */

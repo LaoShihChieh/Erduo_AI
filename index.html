@@ -492,6 +492,11 @@ footer a:hover { text-decoration: underline; }
   var TO      = "hi@erduo.ai";
   var SUBJECT = "Erduo waitlist";
 
+  // Apps Script web app that records a started signup, so the waitlist has a
+  // denominator and not only a total. Empty disables it, and nothing else
+  // changes. See waitlist/autoreply.gs for the endpoint.
+  var COUNT_URL = "https://script.google.com/macros/s/AKfycbzyoDXzrj-q6bg-IeX2326x14xf2OyicXkMnSLlY72kbuEKqE_VhylcDTkQ_SvwwR34hw/exec";
+
   var form    = document.getElementById("join");
   var field   = document.getElementById("field");
   var input   = document.getElementById("name");
@@ -528,6 +533,8 @@ footer a:hover { text-decoration: underline; }
 
     var href = mailtoFor(name);
 
+    countStart();
+
     hint.hidden = true;
     preview.textContent = "“" + bodyFor(name) + "”";
     link.setAttribute("href", href);
@@ -556,6 +563,21 @@ footer a:hover { text-decoration: underline; }
       fallback(text, done);
     }
   });
+
+  /**
+   * sendBeacon rather than fetch, because the line after this hands the page
+   * to the mail client and a request still in flight would be cancelled. A
+   * beacon is queued by the browser and survives the page going away.
+   *
+   * Nothing here is allowed to matter: no endpoint, no support, or a throw,
+   * and the signup carries on exactly as before.
+   */
+  function countStart() {
+    if (!COUNT_URL || !navigator.sendBeacon) return;
+    try {
+      navigator.sendBeacon(COUNT_URL, new Blob(["start"], { type: "text/plain" }));
+    } catch (err) { /* counting never blocks a signup */ }
+  }
 
   function fallback(text, done) {
     var ta = document.createElement("textarea");
