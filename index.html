@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#05131f" media="(prefers-color-scheme: dark)" />
 
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Erduo — a listening ear" />
+<meta property="og:title" content="Erduo, a listening ear" />
 <meta property="og:description" content="Ambient recaps that remember your day, paired with your photos. Ready to post, send, or schedule." />
 <meta property="og:url" content="https://erduo.ai" />
 <meta property="og:image" content="https://erduo.ai/assets/erduo-logo.png" />
@@ -385,7 +385,7 @@ footer a:hover { text-decoration: underline; }
     <p class="lede">
       Erduo stays quiet in the background, notices the conversations that matter,
       and pairs them with the photos you were taking at the time. Then it writes the
-      recap, drafts the follow-up, and proposes the invite — so you can stay in the room.
+      recap, drafts the follow-up, and proposes the invite, so you can stay in the room.
     </p>
 
     <form class="join" id="join" novalidate>
@@ -400,7 +400,7 @@ footer a:hover { text-decoration: underline; }
           </svg>
         </button>
       </div>
-      <p class="hint" id="hint">Type your name and press enter — we will open a one-tap email for you.</p>
+      <p class="hint" id="hint">Type your name and press enter. We will open a one-tap email for you.</p>
       <div class="sent" id="sent" hidden>
         <p>Your mail app should be opening. Just press send.</p>
         <p class="quote" id="preview"></p>
@@ -457,7 +457,7 @@ footer a:hover { text-decoration: underline; }
 
   <hr class="rule" style="margin-top: clamp(3rem, 8vw, 4.5rem)" />
   <p class="quiet">
-    You decide when the ears are open — by hour, by place, or not at all.
+    You decide when the ears are open: by hour, by place, or not at all.
     Every recap is yours to keep, edit, or let go.
   </p>
 
@@ -521,7 +521,7 @@ footer a:hover { text-decoration: underline; }
   input.addEventListener("input", function () {
     if (hint.classList.contains("warn")) {
       hint.classList.remove("warn");
-      hint.textContent = "Type your name and press enter — we will open a one-tap email for you.";
+      hint.textContent = "Type your name and press enter. We will open a one-tap email for you.";
     }
   });
 

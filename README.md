@@ -1,6 +1,6 @@
 # erduo.ai
 
-耳朵 — *ears*. A listening ear that remembers the days worth remembering.
+耳朵, meaning *ears*. A listening ear that remembers the days worth remembering.
 
 Erduo listens ambiently, notices the conversations that matter, pairs them with the
 photos you took at the time, and turns that into a recap you can post, a follow-up
@@ -12,7 +12,7 @@ A single static landing page that collects waitlist signups over `mailto:`.
 
 ```
 index.html          the whole page (no build step, no dependencies to install)
-assets/erduo.png    logo — also used as favicon and apple-touch-icon
+assets/erduo.png    logo, also used as favicon and apple-touch-icon
 ```
 
 ### How the waitlist works
@@ -29,7 +29,7 @@ direct link and a "copy the message" button.
 
 ### Design
 
-Ambient and calm — white cloud over blue sky and ocean, matching the logo's
+Ambient and calm. White cloud over blue sky and ocean, matching the logo's
 teal-to-blue brushstroke. Slowly drifting cloud layers, a light theme by default and a
 night-ocean variant under `prefers-color-scheme: dark`. Motion is disabled under
 `prefers-reduced-motion`. Fonts are Instrument Serif and Inter, with system fallbacks
@@ -45,6 +45,6 @@ python3 -m http.server 8000   # then open http://localhost:8000
 
 ### Deploying
 
-Any static host works — point it at the repo root and serve `index.html`.
+Any static host works. Point it at the repo root and serve `index.html`.
 Vercel, Netlify, Cloudflare Pages and GitHub Pages all need zero configuration.
 For GitHub Pages on a custom domain, add a `CNAME` file containing `erduo.ai`.
