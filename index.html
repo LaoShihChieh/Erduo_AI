@@ -12,8 +12,12 @@
 <meta property="og:title" content="Erduo, a listening ear" />
 <meta property="og:description" content="Ambient recaps that remember your day, paired with your photos. Ready to post, send, or schedule." />
 <meta property="og:url" content="https://erduo.ai" />
-<meta property="og:image" content="https://erduo.ai/assets/erduo.png" />
-<meta name="twitter:card" content="summary" />
+<meta property="og:image" content="https://erduo.ai/assets/erduo-card.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Erduo. A listening ear for the days worth remembering." />
+<meta name="twitter:card" content="summary_large_image" />
 
 <link rel="icon" href="assets/erduo.png" type="image/png" />
 <link rel="apple-touch-icon" href="assets/erduo.png" />
@@ -21,7 +25,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&family=Petit+Formal+Script&display=swap" />
 
 <style>
 :root {
@@ -148,6 +152,19 @@ body {
   font-weight: 400;
   letter-spacing: .01em;
   line-height: 1.1;
+}
+/* The capital echoes the brushstroke in the logo. Petit Formal Script ships
+   only one weight, so the stroke supplies what a bold would: it thickens the
+   outline while leaving the thick-to-thin contrast a script depends on.
+   currentColor means it follows the theme rather than pinning a colour. */
+.wordmark .script {
+  font-family: "Petit Formal Script", "Instrument Serif", Georgia, cursive;
+  font-size: 1.42em;
+  line-height: 0;
+  -webkit-text-stroke: 1.1px currentColor;
+  paint-order: stroke fill;
+  margin-right: -.06em;
+  vertical-align: -.09em;
 }
 .hanzi {
   margin: .3rem 0 0;
@@ -377,7 +394,7 @@ footer a:hover { text-decoration: underline; }
 
   <header class="mast">
     <img class="logo" src="assets/erduo.png" alt="Erduo" width="753" height="753" />
-    <p class="wordmark">erduo<span class="sr">.ai</span></p>
+    <p class="wordmark"><span class="script">E</span>rduo<span class="sr">.ai</span></p>
     <p class="hanzi"><b>耳朵</b> &nbsp;·&nbsp; ears</p>
   </header>
 

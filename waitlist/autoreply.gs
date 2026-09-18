@@ -168,31 +168,41 @@ function plainReply_(name) {
 }
 
 /**
- * The reply, dressed like the landing page: sky gradient behind a white card,
- * serif wordmark, ocean-blue accents.
+ * The reply, dressed like the landing page: sky gradient framing a white card,
+ * the logo as the mark, ocean-blue accents.
+ *
+ * There is no typeset wordmark. Gmail's sanitiser strips @font-face, so the
+ * brand script cannot be live text here, and an image of it would not invert
+ * with the card. The logo already carries the mark, so the wordmark simply
+ * goes.
  *
  * Written to email constraints rather than web ones. Styles are inline because
  * most clients drop <style> blocks. Layout is tables because Outlook renders
- * with Word. The gradient carries a solid bgcolor beneath it, since Outlook
- * ignores linear-gradient. Instrument Serif cannot load in Gmail, so Georgia
- * is named first rather than as a fallback nobody reaches. It is a fragment,
- * not a whole document, because a reply is embedded above the quoted thread.
+ * with Word. Instrument Serif cannot load in Gmail, so Georgia is named first
+ * rather than as a fallback nobody reaches. It is a fragment, not a whole
+ * document, because a reply is embedded above the quoted thread.
+ *
+ * Every piece of text sits inside the card, never on the gradient. Gmail's dark
+ * mode inverts solid background colours and text colours together, but it
+ * cannot invert a background-image, so a gradient stays light while the text
+ * above it flips light and disappears. The card has a solid bgcolor, so it and
+ * its text invert as a unit and keep their contrast. The gradient survives as a
+ * frame around it, carrying only the logo, which is an image and so is never
+ * recoloured.
  */
 function htmlReply_(name) {
   var safe = escapeHtml_(name);
 
   var logo = CONFIG.LOGO_URL
-    ? '<img src="' + escapeHtml_(CONFIG.LOGO_URL) + '" width="120" height="120" ' +
-      'alt="Erduo" style="display:block;margin:0 auto 16px;width:120px;' +
-      'height:120px;border:0;outline:none;text-decoration:none;">'
+    ? '<img src="' + escapeHtml_(CONFIG.LOGO_URL) + '" width="112" height="112" ' +
+      'alt="Erduo" style="display:block;margin:0 auto 13px;width:112px;' +
+      'height:112px;border:0;outline:none;text-decoration:none;">'
     : '';
 
+  var rule = '<div style="height:1px;line-height:1px;font-size:0;' +
+             'background-color:#e4eef7;margin:24px 0;">&nbsp;</div>';
+
   return [
-    // Preheader: the text a mail client shows beside the subject in the inbox
-    // list. Without it the client reaches for the first text in the body and
-    // leads with the masthead, so the preview reads "erduo ears" instead of a
-    // sentence. Hidden in the opened message, and padded so nothing after it
-    // bleeds into the preview.
     '<div style="display:none;max-height:0;max-width:0;overflow:hidden;',
     'opacity:0;font-size:1px;line-height:1px;color:#e7f2fb;">',
     'You are on the list. Thank you for being early.',
@@ -202,23 +212,23 @@ function htmlReply_(name) {
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ',
     'bgcolor="#e7f2fb" style="background-color:#e7f2fb;background-image:',
     'linear-gradient(180deg,#f6fbfe 0%,#e4f1fa 45%,#cfe6f5 100%);margin:0;">',
-    '<tr><td align="center" style="padding:34px 16px 38px;">',
+    '<tr><td align="center" style="padding:30px 16px 34px;">',
 
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ',
     'style="max-width:520px;width:100%;">',
 
-    '<tr><td align="center" style="padding:0 0 24px;">',
-    logo,
-    '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:30px;',
-    'line-height:1.15;color:#0d2a3d;">erduo</div>',
-    '<div style="font-family:Helvetica,Arial,sans-serif;font-size:10px;',
-    'letter-spacing:3px;color:#6b8ca0;padding-top:7px;">&#32819;&#26421;',
-    '&nbsp;&nbsp;&#183;&nbsp;&nbsp;EARS</div>',
-    '</td></tr>',
-
     '<tr><td bgcolor="#ffffff" style="background-color:#ffffff;border-radius:16px;',
     'padding:30px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;',
     'line-height:1.65;color:#0d2a3d;">',
+
+    '<div style="text-align:center;">',
+    logo,
+    '<div style="font-family:Helvetica,Arial,sans-serif;font-size:10px;',
+    'letter-spacing:3px;color:#6b8ca0;">&#32819;&#26421;',
+    '&nbsp;&nbsp;&#183;&nbsp;&nbsp;EARS</div>',
+    '</div>',
+
+    rule,
 
     '<p style="margin:0 0 18px;font-family:Georgia,\'Times New Roman\',serif;',
     'font-size:21px;line-height:1.3;color:#0d2a3d;">Hi ' + safe + ',</p>',
@@ -233,13 +243,13 @@ function htmlReply_(name) {
     '<p style="margin:0;color:#3f6579;">If you ever want off the list, reply to ',
     'this message and say so.</p>',
 
-    '</td></tr>',
+    rule,
 
-    '<tr><td align="center" style="padding:24px 0 0;font-family:Helvetica,Arial,',
-    'sans-serif;font-size:13px;line-height:1.7;color:#6b8ca0;">',
+    '<div style="text-align:center;font-size:13px;line-height:1.7;color:#6b8ca0;">',
     'Quietly yours,<br>Erduo<br>',
     '<a href="https://erduo.ai" style="color:#1b5ea8;text-decoration:none;">',
-    'erduo.ai</a>',
+    'erduo.ai</a></div>',
+
     '</td></tr>',
 
     '</table>',
