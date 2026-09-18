@@ -169,7 +169,12 @@ function plainReply_(name) {
 
 /**
  * The reply, dressed like the landing page: sky gradient framing a white card,
- * serif wordmark, ocean-blue accents.
+ * the logo as the mark, ocean-blue accents.
+ *
+ * There is no typeset wordmark. Gmail's sanitiser strips @font-face, so the
+ * brand script cannot be live text here, and an image of it would not invert
+ * with the card. The logo already carries the mark, so the wordmark simply
+ * goes.
  *
  * Written to email constraints rather than web ones. Styles are inline because
  * most clients drop <style> blocks. Layout is tables because Outlook renders
@@ -189,9 +194,9 @@ function htmlReply_(name) {
   var safe = escapeHtml_(name);
 
   var logo = CONFIG.LOGO_URL
-    ? '<img src="' + escapeHtml_(CONFIG.LOGO_URL) + '" width="104" height="104" ' +
-      'alt="Erduo" style="display:block;margin:0 auto 14px;width:104px;' +
-      'height:104px;border:0;outline:none;text-decoration:none;">'
+    ? '<img src="' + escapeHtml_(CONFIG.LOGO_URL) + '" width="112" height="112" ' +
+      'alt="Erduo" style="display:block;margin:0 auto 13px;width:112px;' +
+      'height:112px;border:0;outline:none;text-decoration:none;">'
     : '';
 
   var rule = '<div style="height:1px;line-height:1px;font-size:0;' +
@@ -218,10 +223,8 @@ function htmlReply_(name) {
 
     '<div style="text-align:center;">',
     logo,
-    '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:29px;',
-    'line-height:1.15;color:#0d2a3d;">erduo</div>',
     '<div style="font-family:Helvetica,Arial,sans-serif;font-size:10px;',
-    'letter-spacing:3px;color:#6b8ca0;padding-top:7px;">&#32819;&#26421;',
+    'letter-spacing:3px;color:#6b8ca0;">&#32819;&#26421;',
     '&nbsp;&nbsp;&#183;&nbsp;&nbsp;EARS</div>',
     '</div>',
 
