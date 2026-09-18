@@ -575,7 +575,11 @@ footer a:hover { text-decoration: underline; }
   function countStart() {
     if (!COUNT_URL || !navigator.sendBeacon) return;
     try {
-      navigator.sendBeacon(COUNT_URL, new Blob(["start"], { type: "text/plain" }));
+      // The marker rides in the query string as well as the body. Apps Script
+      // answers /exec with a redirect, and a redirected POST can arrive as a
+      // GET with its body dropped; a query string survives that hop.
+      navigator.sendBeacon(COUNT_URL + "?s=start",
+                           new Blob(["start"], { type: "text/plain" }));
     } catch (err) { /* counting never blocks a signup */ }
   }
 
