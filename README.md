@@ -27,17 +27,23 @@ On Google Workspace, no code is needed. Enable **Templates** under
 **Settings > Advanced**, save the reply as a template, then create a filter on that
 subject with the **Send template** action.
 
-On a free Gmail account that action does not exist, and the vacation responder cannot
-be scoped to a filter, so use `waitlist/autoreply.gs` instead. Paste it into
-[script.google.com](https://script.google.com), edit `CONFIG` at the top, run
-`previewWaitlist` to confirm it matches real signups without sending anything, then run
-`installTrigger` to check every five minutes.
+That action does not exist on a free Gmail account, and the vacation responder cannot
+be scoped to a filter. `waitlist/autoreply.gs` covers both cases, and is worth choosing
+even on Workspace: Gmail templates have no variables, so a filter sends everyone the
+same text, while the script greets each person by the name they typed.
 
-Setting `CONFIG.SHEET_ID` also appends each signup to a spreadsheet, which gives the
-waitlist somewhere to live besides an inbox without adding a backend.
+Paste it into [script.google.com](https://script.google.com), edit `CONFIG` at the top,
+run `previewWaitlist` to confirm it matches real signups without sending anything, then
+run `installTrigger` to check every five minutes.
+
+It applies `CONFIG.SIGNUP_LABEL` to every signup it sees, so no Gmail filter is needed
+alongside it for organisation. Setting `CONFIG.SHEET_ID` also appends each signup to a
+spreadsheet, which gives the waitlist somewhere to live besides an inbox without adding
+a backend.
 
 The script replies exactly once per person: answered threads get a label, and the
-search that finds work excludes it. It skips unattended addresses such as `no-reply@`
+search that finds work excludes it. That label is applied only after a send succeeds,
+so a failed send is retried on the next run rather than being lost. It skips unattended addresses such as `no-reply@`
 so it cannot start a mail loop, leaves threads alone once someone has answered by
 hand, and escapes the parsed name before putting it in HTML, since that name arrives
 from outside. Each run is capped so a backlog cannot exhaust the daily send quota,

@@ -1,8 +1,10 @@
 /**
  * Erduo waitlist auto-reply.
  *
- * Replies once to every waitlist signup and, optionally, records it in a
- * spreadsheet so the list lives somewhere other than an inbox.
+ * Replies once to every waitlist signup, files it under a label, and
+ * optionally records it in a spreadsheet so the list lives somewhere other
+ * than an inbox. Because it applies the label itself, no Gmail filter is
+ * needed alongside it.
  *
  * Setup:
  *   1. script.google.com > New project. Paste this file in.
@@ -23,6 +25,10 @@ var CONFIG = {
   // which Gmail's search syntax treats specially.
   DONE_LABEL: 'erduo-waitlist-replied',
 
+  // Applied to every signup, answered or not, so the list stays browsable in
+  // Gmail without needing a separate filter. '' disables it.
+  SIGNUP_LABEL: 'Waitlist',
+
   // Optional. Paste a spreadsheet ID to also log signups. '' disables it.
   SHEET_ID: '',
   SHEET_NAME: 'Waitlist',
@@ -34,7 +40,8 @@ var CONFIG = {
 
 /** Entry point. The time-based trigger calls this. */
 function processWaitlist() {
-  var label = getOrCreateLabel_(CONFIG.DONE_LABEL);
+  var done = getOrCreateLabel_(CONFIG.DONE_LABEL);
+  var signup = CONFIG.SIGNUP_LABEL ? getOrCreateLabel_(CONFIG.SIGNUP_LABEL) : null;
 
   var query = [
     'subject:"' + CONFIG.SUBJECT + '"',
@@ -47,7 +54,7 @@ function processWaitlist() {
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
     try {
-      handleThread_(thread, label);
+      handleThread_(thread, done, signup);
     } catch (err) {
       // Keep going: one malformed signup should not stall the rest.
       console.error('Waitlist thread failed: ' + err);
@@ -55,11 +62,15 @@ function processWaitlist() {
   }
 }
 
-function handleThread_(thread, label) {
+function handleThread_(thread, done, signup) {
+  // Every signup gets filed, whether or not it earns a reply, so the label is
+  // a complete record rather than a record of replies.
+  if (signup) signup.addToThread(thread);
+
   // Someone already answered this by hand. Leave it alone, but mark it so it
   // stops showing up as work.
   if (thread.getMessageCount() > 1) {
-    label.addToThread(thread);
+    done.addToThread(thread);
     return;
   }
 
@@ -67,7 +78,7 @@ function handleThread_(thread, label) {
   var address = extractAddress_(message.getFrom());
 
   if (!address || isUnreplyable_(address)) {
-    label.addToThread(thread);
+    done.addToThread(thread);
     return;
   }
 
@@ -79,7 +90,7 @@ function handleThread_(thread, label) {
 
   // Immediately after a successful send, so a later failure cannot cause a
   // second reply to the same person.
-  label.addToThread(thread);
+  done.addToThread(thread);
 
   logToSheet_(name, address, message.getDate());
 }
