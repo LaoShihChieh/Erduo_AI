@@ -15,7 +15,33 @@ index.html          the whole page (no build step, no dependencies to install)
 assets/erduo.png    logo, also used as favicon and apple-touch-icon
 CNAME               binds the GitHub Pages site to erduo.ai
 .nojekyll           publish the files as they are, skipping Jekyll
+waitlist/           Gmail automation, not part of the published site
 ```
+
+## Replying to signups
+
+Signups all arrive with the subject `Erduo waitlist`, which makes them easy to
+target.
+
+On Google Workspace, no code is needed. Enable **Templates** under
+**Settings > Advanced**, save the reply as a template, then create a filter on that
+subject with the **Send template** action.
+
+On a free Gmail account that action does not exist, and the vacation responder cannot
+be scoped to a filter, so use `waitlist/autoreply.gs` instead. Paste it into
+[script.google.com](https://script.google.com), edit `CONFIG` at the top, run
+`previewWaitlist` to confirm it matches real signups without sending anything, then run
+`installTrigger` to check every five minutes.
+
+Setting `CONFIG.SHEET_ID` also appends each signup to a spreadsheet, which gives the
+waitlist somewhere to live besides an inbox without adding a backend.
+
+The script replies exactly once per person: answered threads get a label, and the
+search that finds work excludes it. It skips unattended addresses such as `no-reply@`
+so it cannot start a mail loop, leaves threads alone once someone has answered by
+hand, and escapes the parsed name before putting it in HTML, since that name arrives
+from outside. Each run is capped so a backlog cannot exhaust the daily send quota,
+which is roughly 100 messages a day on free Gmail and 1,500 on Workspace.
 
 ### How the waitlist works
 
