@@ -46,6 +46,15 @@ Instrument Serif. `CONFIG.LOGO_URL` needs a public URL and so renders once the s
 live; the email is designed to read correctly without it, since most clients block
 remote images until the reader allows them.
 
+It also publishes a web app endpoint. The page beacons it when someone taps the
+button, so the spreadsheet records how many signups were *started* as well as how many
+arrived. Without that, a signup begun and abandoned is invisible and there is no way to
+tell a page nobody visits from a flow that leaks. Deploy it under Deploy > New
+deployment > Web app, execute as yourself, access for anyone, and paste the `/exec` URL
+into `COUNT_URL` in `index.html`. It stores a timestamp and nothing else. That URL sits
+in the page source, so the started count is soft and could be inflated; the number of
+replies sent stays hard, because each one answers a real message from a real mailbox.
+
 It applies `CONFIG.SIGNUP_LABEL` to every signup it sees, so no Gmail filter is needed
 alongside it for organisation. Setting `CONFIG.SHEET_ID` also appends each signup to a
 spreadsheet, which gives the waitlist somewhere to live besides an inbox without adding
