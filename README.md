@@ -74,7 +74,11 @@ direct link and a "copy the message" button.
 ### Design
 
 Ambient and calm. White cloud over blue sky and ocean, matching the logo's
-teal-to-blue brushstroke. Slowly drifting cloud layers, a light theme by default and a
+teal-to-blue brushstroke. The wordmark's capital is Petit Formal Script, which
+echoes the brushstroke in the mark. That face ships one weight only, so the
+stroke supplies what a bold would, thickening the outline while keeping the
+thick-to-thin contrast a script depends on, and it draws in `currentColor` so it
+follows the theme. Slowly drifting cloud layers, a light theme by default and a
 night-ocean variant under `prefers-color-scheme: dark`. Motion is disabled under
 `prefers-reduced-motion`. Fonts are Instrument Serif and Inter, with system fallbacks
 so the page still reads correctly if Google Fonts is unreachable.
