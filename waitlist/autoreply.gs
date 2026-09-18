@@ -188,6 +188,17 @@ function htmlReply_(name) {
     : '';
 
   return [
+    // Preheader: the text a mail client shows beside the subject in the inbox
+    // list. Without it the client reaches for the first text in the body and
+    // leads with the masthead, so the preview reads "erduo ears" instead of a
+    // sentence. Hidden in the opened message, and padded so nothing after it
+    // bleeds into the preview.
+    '<div style="display:none;max-height:0;max-width:0;overflow:hidden;',
+    'opacity:0;font-size:1px;line-height:1px;color:#e7f2fb;">',
+    'You are on the list. Thank you for being early.',
+    new Array(60).join('&#8204;&nbsp;'),
+    '</div>',
+
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ',
     'bgcolor="#e7f2fb" style="background-color:#e7f2fb;background-image:',
     'linear-gradient(180deg,#f6fbfe 0%,#e4f1fa 45%,#cfe6f5 100%);margin:0;">',
