@@ -352,6 +352,12 @@ function getOrCreateLabel_(name) {
  * COUNT_URL on the landing page. Re-deploy after editing, since a web app
  * serves the code as of its last deployment.
  *
+ * The marker travels in the query string rather than the body, and both verbs
+ * are handled. An Apps Script web app answers /exec with a redirect to
+ * googleusercontent.com, and a redirected POST can arrive as a GET with its
+ * body dropped, so a marker that lives only in the body never survives the
+ * hop. A query string does.
+ *
  * It records a timestamp and nothing else: no name, no address, no identifier.
  * The point is a denominator, not a profile.
  *
@@ -361,16 +367,25 @@ function getOrCreateLabel_(name) {
  * starts as a rough denominator and sends as the truth.
  */
 function doPost(e) {
+  return handleHit_(e);
+}
+
+function doGet(e) {
+  return handleHit_(e);
+}
+
+function handleHit_(e) {
   try {
+    var marked = e && e.parameter && e.parameter.s === 'start';
     var body = e && e.postData ? String(e.postData.contents || '') : '';
-    // Ignore anything that is not the one message the page sends. Stops
-    // generic crawler posts from filling the tab with noise.
-    if (body.slice(0, 5) === 'start') recordStart_();
+    // Only the page's own marker counts, so a crawler finding the bare URL
+    // writes nothing.
+    if (marked || body.slice(0, 5) === 'start') recordStart_();
   } catch (err) {
     console.error('Could not record a start: ' + err);
+    return ContentService.createTextOutput('error: ' + err);
   }
-  // Always a bare 200. The page cannot read the response and does not need to.
-  return ContentService.createTextOutput('');
+  return ContentService.createTextOutput('ok');
 }
 
 function recordStart_() {
