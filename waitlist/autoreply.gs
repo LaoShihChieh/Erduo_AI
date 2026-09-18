@@ -34,6 +34,12 @@ var CONFIG = {
   // '' always uses the account address.
   REPLY_FROM: 'hi@erduo.ai',
 
+  // Logo shown at the top of the reply. Needs a publicly reachable URL, so it
+  // renders once erduo.ai is live. '' drops the image and leaves the typeset
+  // wordmark, which the email is designed to stand on anyway: most clients
+  // block remote images until the reader allows them.
+  LOGO_URL: 'https://erduo.ai/assets/erduo-email.png',
+
   // Optional. Paste a spreadsheet ID to also log signups. '' disables it.
   SHEET_ID: '',
   SHEET_NAME: 'Waitlist',
@@ -161,23 +167,72 @@ function plainReply_(name) {
   ].join('\n');
 }
 
+/**
+ * The reply, dressed like the landing page: sky gradient behind a white card,
+ * serif wordmark, ocean-blue accents.
+ *
+ * Written to email constraints rather than web ones. Styles are inline because
+ * most clients drop <style> blocks. Layout is tables because Outlook renders
+ * with Word. The gradient carries a solid bgcolor beneath it, since Outlook
+ * ignores linear-gradient. Instrument Serif cannot load in Gmail, so Georgia
+ * is named first rather than as a fallback nobody reaches. It is a fragment,
+ * not a whole document, because a reply is embedded above the quoted thread.
+ */
 function htmlReply_(name) {
-  // The name came from an email body, so it is untrusted input. Escaping it
-  // keeps a signup from injecting markup into mail we send.
   var safe = escapeHtml_(name);
+
+  var logo = CONFIG.LOGO_URL
+    ? '<img src="' + escapeHtml_(CONFIG.LOGO_URL) + '" width="120" height="120" ' +
+      'alt="Erduo" style="display:block;margin:0 auto 16px;width:120px;' +
+      'height:120px;border:0;outline:none;text-decoration:none;">'
+    : '';
+
   return [
-    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',system-ui,sans-serif;',
-    'font-size:15px;line-height:1.65;color:#0d2a3d;max-width:34em">',
-    '<p>Hi ' + safe + ',</p>',
-    '<p>You are on the list. Thank you for being early.</p>',
-    '<p>Erduo is a listening ear. It stays quiet in the background, notices the ',
-    'conversations worth keeping, and pairs them with the photos you took at the ',
-    'time. Then it drafts the follow-up and proposes the invite, so you can stay ',
-    'in the room.</p>',
-    '<p>If you ever want off the list, reply to this message and say so.</p>',
-    '<p style="color:#3f6579">Quietly yours,<br>Erduo<br>',
-    '<a href="https://erduo.ai" style="color:#1b5ea8">erduo.ai</a></p>',
-    '</div>',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ',
+    'bgcolor="#e7f2fb" style="background-color:#e7f2fb;background-image:',
+    'linear-gradient(180deg,#f6fbfe 0%,#e4f1fa 45%,#cfe6f5 100%);margin:0;">',
+    '<tr><td align="center" style="padding:34px 16px 38px;">',
+
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ',
+    'style="max-width:520px;width:100%;">',
+
+    '<tr><td align="center" style="padding:0 0 24px;">',
+    logo,
+    '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:30px;',
+    'line-height:1.15;color:#0d2a3d;">erduo</div>',
+    '<div style="font-family:Helvetica,Arial,sans-serif;font-size:10px;',
+    'letter-spacing:3px;color:#6b8ca0;padding-top:7px;">&#32819;&#26421;',
+    '&nbsp;&nbsp;&#183;&nbsp;&nbsp;EARS</div>',
+    '</td></tr>',
+
+    '<tr><td bgcolor="#ffffff" style="background-color:#ffffff;border-radius:16px;',
+    'padding:30px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;',
+    'line-height:1.65;color:#0d2a3d;">',
+
+    '<p style="margin:0 0 18px;font-family:Georgia,\'Times New Roman\',serif;',
+    'font-size:21px;line-height:1.3;color:#0d2a3d;">Hi ' + safe + ',</p>',
+
+    '<p style="margin:0 0 16px;">You are on the list. Thank you for being early.</p>',
+
+    '<p style="margin:0 0 16px;color:#3f6579;">Erduo is a listening ear. It stays ',
+    'quiet in the background, notices the conversations worth keeping, and pairs ',
+    'them with the photos you took at the time. Then it drafts the follow-up and ',
+    'proposes the invite, so you can stay in the room.</p>',
+
+    '<p style="margin:0;color:#3f6579;">If you ever want off the list, reply to ',
+    'this message and say so.</p>',
+
+    '</td></tr>',
+
+    '<tr><td align="center" style="padding:24px 0 0;font-family:Helvetica,Arial,',
+    'sans-serif;font-size:13px;line-height:1.7;color:#6b8ca0;">',
+    'Quietly yours,<br>Erduo<br>',
+    '<a href="https://erduo.ai" style="color:#1b5ea8;text-decoration:none;">',
+    'erduo.ai</a>',
+    '</td></tr>',
+
+    '</table>',
+    '</td></tr></table>',
   ].join('');
 }
 

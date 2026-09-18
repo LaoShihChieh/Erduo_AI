@@ -13,6 +13,7 @@ A single static landing page that collects waitlist signups over `mailto:`.
 ```
 index.html          the whole page (no build step, no dependencies to install)
 assets/erduo.png    logo, also used as favicon and apple-touch-icon
+assets/erduo-email.png  240px logo for the reply email, 76KB rather than 460KB
 CNAME               binds the GitHub Pages site to erduo.ai
 .nojekyll           publish the files as they are, skipping Jekyll
 waitlist/           Gmail automation, not part of the published site
@@ -35,6 +36,14 @@ same text, while the script greets each person by the name they typed.
 Paste it into [script.google.com](https://script.google.com), edit `CONFIG` at the top,
 run `previewWaitlist` to confirm it matches real signups without sending anything, then
 run `installTrigger` to check every five minutes.
+
+The reply is branded to match the page: sky gradient behind a white card, serif
+wordmark, ocean-blue accents. It is built to email constraints rather than web ones,
+so styles are inline, the layout is tables, the gradient sits over a solid `bgcolor`
+that Outlook can render, and Georgia is named first because Gmail cannot load
+Instrument Serif. `CONFIG.LOGO_URL` needs a public URL and so renders once the site is
+live; the email is designed to read correctly without it, since most clients block
+remote images until the reader allows them.
 
 It applies `CONFIG.SIGNUP_LABEL` to every signup it sees, so no Gmail filter is needed
 alongside it for organisation. Setting `CONFIG.SHEET_ID` also appends each signup to a
