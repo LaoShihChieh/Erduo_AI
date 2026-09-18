@@ -13,6 +13,8 @@ A single static landing page that collects waitlist signups over `mailto:`.
 ```
 index.html          the whole page (no build step, no dependencies to install)
 assets/erduo.png    logo, also used as favicon and apple-touch-icon
+CNAME               binds the GitHub Pages site to erduo.ai
+.nojekyll           publish the files as they are, skipping Jekyll
 ```
 
 ### How the waitlist works
@@ -46,5 +48,43 @@ python3 -m http.server 8000   # then open http://localhost:8000
 ### Deploying
 
 Any static host works. Point it at the repo root and serve `index.html`.
-Vercel, Netlify, Cloudflare Pages and GitHub Pages all need zero configuration.
-For GitHub Pages on a custom domain, add a `CNAME` file containing `erduo.ai`.
+There is no backend: the waitlist runs entirely in the visitor's mail client, so
+nothing needs a server, a database, or an API key.
+
+`CNAME` and `.nojekyll` in the repo root configure GitHub Pages. `CNAME` binds the
+site to `erduo.ai`; `.nojekyll` tells Pages to publish the files as they are instead
+of running them through Jekyll.
+
+**GitHub Pages requires a public repo on the Free plan.** Pages from a private repo
+needs GitHub Pro. Note that a Pages site is publicly reachable either way, so keeping
+the repo private hides the source, not the page.
+
+#### DNS for erduo.ai
+
+Point the apex at GitHub with four A records and four AAAA records:
+
+```
+A     erduo.ai    185.199.108.153
+A     erduo.ai    185.199.109.153
+A     erduo.ai    185.199.110.153
+A     erduo.ai    185.199.111.153
+
+AAAA  erduo.ai    2606:50c0:8000::153
+AAAA  erduo.ai    2606:50c0:8001::153
+AAAA  erduo.ai    2606:50c0:8002::153
+AAAA  erduo.ai    2606:50c0:8003::153
+
+CNAME www         laoshihchieh.github.io.
+```
+
+Use A and AAAA records at the apex, never a CNAME. A CNAME at the apex takes over the
+whole name and would break the `MX` records that deliver mail to `hi@erduo.ai`. A and
+AAAA records sit alongside `MX` without conflict, so web hosting and email coexist on
+the same domain.
+
+Remove any placeholder or parking record the registrar added at the apex first, and
+avoid wildcard records such as `*.erduo.ai`, which expose the domain to takeover.
+
+Then in **Settings > Pages**, set the source to `main` / `(root)`, confirm the custom
+domain reads `erduo.ai`, wait for the certificate to be issued, and switch on
+**Enforce HTTPS**.
