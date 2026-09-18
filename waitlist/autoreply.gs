@@ -29,6 +29,11 @@ var CONFIG = {
   // Gmail without needing a separate filter. '' disables it.
   SIGNUP_LABEL: 'Waitlist',
 
+  // Send replies as this address instead of the account's own. It must be a
+  // configured send-as alias in Gmail, otherwise the account address is used.
+  // '' always uses the account address.
+  REPLY_FROM: 'hi@erduo.ai',
+
   // Optional. Paste a spreadsheet ID to also log signups. '' disables it.
   SHEET_ID: '',
   SHEET_NAME: 'Waitlist',
@@ -86,7 +91,11 @@ function handleThread_(thread, done, signup) {
              extractDisplayName_(message.getFrom()) ||
              'there';
 
-  message.reply(plainReply_(name), { htmlBody: htmlReply_(name) });
+  var options = { htmlBody: htmlReply_(name) };
+  var alias = replyAlias_();
+  if (alias) options.from = alias;
+
+  message.reply(plainReply_(name), options);
 
   // Immediately after a successful send, so a later failure cannot cause a
   // second reply to the same person.
@@ -206,6 +215,42 @@ function logToSheet_(name, address, date) {
 function sheetSafe_(text) {
   var s = String(text);
   return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
+/**
+ * Resolves CONFIG.REPLY_FROM against the account's configured send-as
+ * aliases, returning '' when it is not one of them. Falling back to the
+ * account address means a missing or renamed alias degrades the From header
+ * rather than failing every reply. Cached for the run, since Apps Script
+ * re-initialises globals on each execution.
+ */
+var aliasCache_ = null;
+
+function replyAlias_() {
+  if (aliasCache_ !== null) return aliasCache_;
+
+  aliasCache_ = '';
+  if (CONFIG.REPLY_FROM) {
+    var wanted = CONFIG.REPLY_FROM.toLowerCase();
+    var aliases = [];
+    try {
+      aliases = GmailApp.getAliases();
+    } catch (err) {
+      // A From header is a nicety; never let looking one up cost a reply.
+      console.log('Could not read send-as aliases: ' + err);
+    }
+    for (var i = 0; i < aliases.length; i++) {
+      if (String(aliases[i]).toLowerCase() === wanted) {
+        aliasCache_ = aliases[i];
+        break;
+      }
+    }
+    if (!aliasCache_) {
+      console.log('REPLY_FROM ' + CONFIG.REPLY_FROM +
+                  ' is not a send-as alias; replying from the account address.');
+    }
+  }
+  return aliasCache_;
 }
 
 function getOrCreateLabel_(name) {
