@@ -162,8 +162,8 @@ function plainReply_(name) {
     'the time. Then it drafts the follow-up and proposes the invite, so you',
     'can stay in the room.',
     '',
-    'One question, if you have a moment: what is the thing you most often',
-    'wish you had written down? Hit reply and tell me. I read every one.',
+    'Is there a conversation you wish you still had?',
+    'Hit reply and tell me. I read every one.',
     '',
     'If you ever want off the list, reply to this message and say so.',
     '',
@@ -246,9 +246,8 @@ function htmlReply_(name) {
     'them with the photos you took at the time. Then it drafts the follow-up and ',
     'proposes the invite, so you can stay in the room.</p>',
 
-    '<p style="margin:0 0 16px;">One question, if you have a moment: what is ',
-    'the thing you most often wish you had written down? Hit reply and tell ',
-    'me. I read every one.</p>',
+    '<p style="margin:0 0 16px;">Is there a conversation you wish you still ',
+    'had? Hit reply and tell me. I read every one.</p>',
 
     '<p style="margin:0;color:#3f6579;">If you ever want off the list, reply to ',
     'this message and say so.</p>',
