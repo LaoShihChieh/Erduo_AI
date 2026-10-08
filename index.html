@@ -25,24 +25,31 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&family=Petit+Formal+Script&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..600;1,300..600&family=Instrument+Serif&family=Petit+Formal+Script&display=swap" />
 
 <style>
+/* Tokens. One accent (--accent) everywhere; the sky is the brand, not decoration.
+   Radius system: anything you press or type into is a full pill; containers are
+   20px; the logo keeps its own squircle. Layers: sky -1, content 0, grain 10. */
 :root {
   --sky-top:      #f4fafe;
   --sky-mid:      #e2f0fa;
   --sky-bottom:   #c9e3f4;
-  --cloud:        #ffffff;
-  --surface:      rgba(255,255,255,.62);
-  --surface-line: rgba(28,95,168,.13);
+  --cloud:        #fcfeff;
+  --glass:        rgba(252,254,255,.72);
+  --panel:        rgba(252,254,255,.55);
+  --line:         rgba(13,42,61,.12);
   --ink:          #0d2a3d;
   --ink-soft:     #3f6579;
-  --ink-faint:    #6b8ca0;
+  --ink-faint:    #4f7187;
   --accent:       #1b5ea8;
-  --accent-soft:  #2e9db5;
+  --on-accent:    #fcfeff;
   --focus:        #1b5ea8;
   --shadow:       0 24px 60px -28px rgba(13,60,102,.38);
-  --shadow-soft:  0 10px 34px -20px rgba(13,60,102,.30);
+  --shadow-soft:  0 12px 32px -18px rgba(13,60,102,.34);
+  --grain:        .05;
+  --glass-edge:   rgba(255,255,255,.55);
+  --radius:       20px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -50,16 +57,19 @@
     --sky-mid:      #071d2e;
     --sky-bottom:   #0b2a3e;
     --cloud:        #123349;
-    --surface:      rgba(17,52,74,.52);
-    --surface-line: rgba(139,197,231,.16);
+    --glass:        rgba(18,51,73,.66);
+    --panel:        rgba(18,51,73,.45);
+    --line:         rgba(169,200,220,.16);
     --ink:          #e9f4fb;
     --ink-soft:     #a9c8dc;
-    --ink-faint:    #7ba0b8;
+    --ink-faint:    #8fb1c7;
     --accent:       #6fbcea;
-    --accent-soft:  #59cbdd;
+    --on-accent:    #04121e;
     --focus:        #8fd0f5;
     --shadow:       0 24px 60px -28px rgba(0,0,0,.65);
-    --shadow-soft:  0 10px 34px -20px rgba(0,0,0,.55);
+    --shadow-soft:  0 12px 32px -18px rgba(0,0,0,.6);
+    --grain:        .07;
+    --glass-edge:   rgba(255,255,255,.07);
   }
 }
 :root[data-theme="dark"] {
@@ -67,16 +77,19 @@
   --sky-mid:      #071d2e;
   --sky-bottom:   #0b2a3e;
   --cloud:        #123349;
-  --surface:      rgba(17,52,74,.52);
-  --surface-line: rgba(139,197,231,.16);
+  --glass:        rgba(18,51,73,.66);
+  --panel:        rgba(18,51,73,.45);
+  --line:         rgba(169,200,220,.16);
   --ink:          #e9f4fb;
   --ink-soft:     #a9c8dc;
-  --ink-faint:    #7ba0b8;
+  --ink-faint:    #8fb1c7;
   --accent:       #6fbcea;
-  --accent-soft:  #59cbdd;
+  --on-accent:    #04121e;
   --focus:        #8fd0f5;
   --shadow:       0 24px 60px -28px rgba(0,0,0,.65);
-  --shadow-soft:  0 10px 34px -20px rgba(0,0,0,.55);
+  --shadow-soft:  0 12px 32px -18px rgba(0,0,0,.6);
+  --grain:        .07;
+  --glass-edge:   rgba(255,255,255,.07);
 }
 
 * { box-sizing: border-box; }
@@ -88,16 +101,28 @@ html {
 
 body {
   margin: 0;
-  min-height: 100svh;
+  min-height: 100dvh;
   background:
     linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 46%, var(--sky-bottom) 100%)
     fixed;
   color: var(--ink);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-weight: 400;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+/* Film grain over everything, fixed and inert, so the sky reads as air rather
+   than a flat fill. Fixed means the GPU paints it once, not on every scroll. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ---------- sky + clouds ---------- */
@@ -118,27 +143,21 @@ body {
 .cloud.a { width: 62vw; height: 40vw; top: -12vw; left: -14vw; animation: driftA 64s ease-in-out infinite alternate; }
 .cloud.b { width: 50vw; height: 30vw; top: 22vh; right: -18vw; opacity: .55; animation: driftB 82s ease-in-out infinite alternate; }
 .cloud.c { width: 78vw; height: 34vw; bottom: -16vw; left: 6vw; opacity: .48; animation: driftC 96s ease-in-out infinite alternate; }
-.cloud.tint {
-  background: radial-gradient(circle at 50% 50%, var(--accent-soft), transparent 68%);
-  width: 46vw; height: 46vw; top: 34vh; left: 8vw;
-  opacity: .12; filter: blur(80px);
-  animation: driftB 74s ease-in-out infinite alternate-reverse;
-}
 @keyframes driftA { from { transform: translate3d(0,0,0) } to { transform: translate3d(7vw, 3vh, 0) } }
 @keyframes driftB { from { transform: translate3d(0,0,0) } to { transform: translate3d(-6vw, -4vh, 0) } }
 @keyframes driftC { from { transform: translate3d(0,0,0) } to { transform: translate3d(5vw, -3vh, 0) } }
 
 /* ---------- layout ---------- */
 .wrap {
-  max-width: 62rem;
+  max-width: 70rem;
   margin: 0 auto;
-  padding: clamp(2.5rem, 7vw, 5rem) 16px clamp(3rem, 8vw, 6rem);
+  padding: clamp(2rem, 5vw, 3.5rem) 16px clamp(3rem, 7vw, 5rem);
 }
 
 /* ---------- masthead ---------- */
 .mast { text-align: center; }
 .logo {
-  width: clamp(88px, 17vw, 128px);
+  width: clamp(72px, 13vw, 104px);
   height: auto;
   display: block;
   margin: 0 auto;
@@ -146,9 +165,9 @@ body {
   box-shadow: var(--shadow);
 }
 .wordmark {
-  margin: 1.35rem 0 0;
+  margin: 1.1rem 0 0;
   font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
-  font-size: clamp(2.1rem, 6.5vw, 2.9rem);
+  font-size: clamp(2rem, 6vw, 2.7rem);
   font-weight: 400;
   letter-spacing: .01em;
   line-height: 1.1;
@@ -156,7 +175,8 @@ body {
 /* The capital echoes the brushstroke in the logo. Petit Formal Script ships
    only one weight, so the stroke supplies what a bold would: it thickens the
    outline while leaving the thick-to-thin contrast a script depends on.
-   currentColor means it follows the theme rather than pinning a colour. */
+   currentColor means it follows the theme rather than pinning a colour.
+   The wordmark is the brand's own and keeps its serif; nothing else uses it. */
 .wordmark .script {
   font-family: "Petit Formal Script", "Instrument Serif", Georgia, cursive;
   font-size: 1.42em;
@@ -169,58 +189,67 @@ body {
 .hanzi {
   margin: .3rem 0 0;
   font-size: .8rem;
-  letter-spacing: .34em;
+  letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 .hanzi b { font-weight: 400; letter-spacing: .18em; }
 
-/* ---------- hero ---------- */
-.hero { text-align: center; margin-top: clamp(2.75rem, 8vw, 4.5rem); }
+/* ---------- hero ----------
+   Centred on purpose: a waitlist is a single announcement, and the message is
+   the design. Everything below it breaks the symmetry. */
+.hero { text-align: center; margin-top: clamp(2rem, 6vw, 3.25rem); }
 h1 {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(2.2rem, 7vw, 4rem);
-  line-height: 1.12;
-  letter-spacing: -.012em;
+  font-weight: 500;
+  font-size: clamp(2.3rem, 6.4vw, 4.25rem);
+  /* 1.1 rather than tighter: the italic g in "listening" needs the room. */
+  line-height: 1.1;
+  letter-spacing: -.032em;
   margin: 0 auto;
-  max-width: 17ch;
+  padding-bottom: .06em;
+  max-width: 21ch;
   text-wrap: balance;
 }
 h1 em {
   font-style: italic;
-  background: linear-gradient(120deg, var(--accent-soft), var(--accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-weight: 500;
+  color: var(--accent);
 }
 .lede {
-  margin: 1.5rem auto 0;
-  max-width: 46ch;
-  font-size: clamp(1.02rem, 2.4vw, 1.18rem);
-  font-weight: 300;
+  margin: 1.25rem auto 0;
+  max-width: 44ch;
+  font-size: clamp(1.05rem, 2.3vw, 1.2rem);
   color: var(--ink-soft);
   text-wrap: pretty;
 }
 
 /* ---------- waitlist ---------- */
-.join { margin: clamp(2.25rem, 6vw, 3rem) auto 0; max-width: 30rem; }
+.join { margin: clamp(1.9rem, 5vw, 2.5rem) auto 0; max-width: 31rem; text-align: left; }
+.join label {
+  display: block;
+  margin: 0 0 .5rem 1.3rem;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+/* The one glass surface on the page: the thing you touch floats over the sky.
+   A 1px inner highlight stands in for the edge of real glass. */
 .field {
   display: flex;
   align-items: center;
   gap: .5rem;
-  background: var(--surface);
-  border: 1px solid var(--surface-line);
+  background: var(--glass);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  padding: .45rem .45rem .45rem 1.3rem;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: border-color .2s ease, box-shadow .2s ease;
+  padding: .4rem .4rem .4rem 1.3rem;
+  box-shadow: var(--shadow-soft), inset 0 1px 0 var(--glass-edge);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  transition: border-color .25s cubic-bezier(.16,1,.3,1), box-shadow .25s cubic-bezier(.16,1,.3,1);
 }
 .field:focus-within {
   border-color: color-mix(in srgb, var(--focus) 55%, transparent);
-  box-shadow: var(--shadow-soft), 0 0 0 4px color-mix(in srgb, var(--focus) 16%, transparent);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 var(--glass-edge), 0 0 0 4px color-mix(in srgb, var(--focus) 18%, transparent);
 }
 .field input {
   flex: 1 1 auto;
@@ -228,38 +257,46 @@ h1 em {
   border: 0;
   background: none;
   font: inherit;
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   color: var(--ink);
-  padding: .68rem 0;
+  padding: .7rem 0;
   outline: none;
 }
-.field input::placeholder { color: var(--ink-faint); }
 .go {
   flex: 0 0 auto;
-  width: 3rem; height: 3rem;
-  display: grid; place-items: center;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  height: 3rem;
+  padding: 0 1.15rem 0 1.3rem;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   cursor: pointer;
-  color: #fff;
-  background: linear-gradient(145deg, var(--accent-soft), var(--accent));
-  box-shadow: 0 6px 18px -8px rgba(13,60,102,.7);
-  transition: transform .18s ease, filter .18s ease;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  white-space: nowrap;
+  color: var(--on-accent);
+  background: var(--accent);
+  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+  transition: transform .25s cubic-bezier(.16,1,.3,1), filter .25s ease;
 }
-.go:hover { transform: translateY(-1px); filter: saturate(1.1); }
-.go:active { transform: translateY(0) scale(.97); }
+.go:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.go:active { transform: translateY(1px) scale(.98); }
 .go:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-.go svg { width: 20px; height: 20px; }
+.go svg { width: 18px; height: 18px; transition: transform .25s cubic-bezier(.16,1,.3,1); }
+.go:hover svg { transform: translateX(2px); }
 
 .hint {
-  margin: .85rem auto 0;
-  font-size: .87rem;
+  margin: .8rem 1.3rem 0;
+  font-size: .88rem;
   color: var(--ink-faint);
   min-height: 1.4em;
   text-wrap: pretty;
 }
 .hint a { color: var(--accent); text-underline-offset: 3px; }
-.hint.warn { color: var(--accent); }
+.hint.warn { color: var(--accent); font-weight: 500; }
 
 .field.nudge { animation: nudge .38s ease; }
 @keyframes nudge {
@@ -270,106 +307,146 @@ h1 em {
 
 /* sent state */
 .sent {
-  margin: 1rem auto 0;
-  padding: 1rem 1.15rem;
-  border-radius: 1.1rem;
-  background: var(--surface);
-  border: 1px solid var(--surface-line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  text-align: left;
-  font-size: .9rem;
+  margin: 1rem 0 0;
+  padding: 1.1rem 1.3rem 1.2rem;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-size: .92rem;
   color: var(--ink-soft);
 }
 .sent[hidden] { display: none; }
 .sent p { margin: 0 0 .55rem; }
 .sent .quote {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-style: italic;
   color: var(--ink);
-  margin: 0 0 .7rem;
+  margin: 0 0 .75rem;
 }
 .sent .row { display: flex; flex-wrap: wrap; gap: .5rem; }
 .linkbtn {
-  border: 1px solid var(--surface-line);
+  border: 1px solid var(--line);
   background: none;
   color: var(--accent);
   font: inherit;
-  font-size: .85rem;
-  padding: .38rem .8rem;
+  font-size: .86rem;
+  font-weight: 500;
+  padding: .42rem .9rem;
   border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
-  transition: background .18s ease;
+  transition: background .25s ease, transform .25s cubic-bezier(.16,1,.3,1);
 }
 .linkbtn:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.linkbtn:active { transform: translateY(1px); }
 .linkbtn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
-/* ---------- cards ---------- */
-.cards {
-  margin: clamp(3.5rem, 10vw, 6rem) 0 0;
+/* ---------- what it does ----------
+   A heading column and a hairline list, instead of three identical cards. */
+.does {
+  margin-top: clamp(4.5rem, 12vw, 8rem);
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 2rem 4rem;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: start;
 }
-.card {
-  background: var(--surface);
-  border: 1px solid var(--surface-line);
-  border-radius: 1.4rem;
-  padding: 1.5rem 1.4rem;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: var(--shadow-soft);
-}
-.card h2 {
-  margin: .9rem 0 .4rem;
-  font-size: 1.02rem;
+.does > div { position: sticky; top: 2.5rem; }
+.does h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 500;
-  letter-spacing: -.005em;
+  line-height: 1.12;
+  letter-spacing: -.028em;
+  text-wrap: balance;
 }
-.card p { margin: 0; font-size: .92rem; font-weight: 300; color: var(--ink-soft); text-wrap: pretty; }
-.glyph {
-  width: 2.1rem; height: 2.1rem;
-  display: grid; place-items: center;
-  border-radius: .7rem;
-  color: #fff;
-  background: linear-gradient(145deg, var(--accent-soft), var(--accent));
-}
-.glyph svg { width: 17px; height: 17px; }
-
-/* ---------- quiet note ---------- */
-.quiet {
-  margin: clamp(3rem, 8vw, 4.5rem) auto 0;
-  max-width: 44ch;
-  text-align: center;
-  font-size: .95rem;
-  font-weight: 300;
+.does .intro {
+  margin: .9rem 0 0;
+  max-width: 30ch;
+  font-size: 1.05rem;
   color: var(--ink-soft);
   text-wrap: pretty;
 }
-.rule {
-  width: 3.5rem; height: 1px;
-  margin: 0 auto clamp(1.5rem, 4vw, 2rem);
-  background: linear-gradient(90deg, transparent, var(--surface-line), transparent);
-  border: 0;
+.points { list-style: none; margin: 0; padding: 0; }
+.points li {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: 0 1rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--line);
+}
+.points li:first-child { padding-top: .35rem; border-top: 0; }
+.points svg { width: 28px; height: 28px; color: var(--accent); margin-top: .1rem; }
+.points h3 {
+  margin: 0 0 .3rem;
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.points p { margin: 0; max-width: 52ch; color: var(--ink-soft); text-wrap: pretty; }
+
+/* ---------- the promise ---------- */
+.promise {
+  margin: clamp(4.5rem, 11vw, 7.5rem) 0 0;
+  padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 5vw, 3.5rem);
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+.promise p {
+  margin: 0;
+  max-width: 30ch;
+  font-size: clamp(1.45rem, 3.4vw, 2.15rem);
+  font-weight: 400;
+  line-height: 1.28;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.promise p + p {
+  margin-top: .9rem;
+  max-width: 44ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  text-wrap: pretty;
 }
 
 /* ---------- footer ---------- */
 footer {
-  margin: clamp(3.5rem, 9vw, 5rem) 0 0;
+  margin: clamp(3rem, 8vw, 4.5rem) 0 0;
   text-align: center;
-  font-size: .84rem;
+  font-size: .86rem;
   color: var(--ink-faint);
 }
 footer a { color: var(--ink-soft); text-decoration: none; text-underline-offset: 3px; }
 footer a:hover { text-decoration: underline; }
-.dot { opacity: .45; margin: 0 .5rem; }
+.dot { opacity: .5; margin: 0 .5rem; }
 
 .sr {
   position: absolute; width: 1px; height: 1px;
   padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- motion ----------
+   The hero arrives in a short cascade instead of all at once. Only opacity and
+   transform move, and without motion preferences it is simply there. */
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise .8s cubic-bezier(.16,1,.3,1) both; }
+  .rise.d1 { animation-delay: .06s; }
+  .rise.d2 { animation-delay: .14s; }
+  .rise.d3 { animation-delay: .22s; }
+  .rise.d4 { animation-delay: .30s; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (max-width: 767px) {
+  .does { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  .does > div { position: static; }
+  .points li:first-child { padding-top: 1.5rem; border-top: 1px solid var(--line); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -387,38 +464,33 @@ footer a:hover { text-decoration: underline; }
   <div class="cloud a"></div>
   <div class="cloud b"></div>
   <div class="cloud c"></div>
-  <div class="cloud tint"></div>
 </div>
 
 <main class="wrap">
 
-  <header class="mast">
+  <header class="mast rise">
     <img class="logo" src="assets/erduo.png" alt="Erduo" width="753" height="753" />
     <p class="wordmark"><span class="script">E</span>rduo<span class="sr">.ai</span></p>
     <p class="hanzi"><b>耳朵</b> &nbsp;·&nbsp; ears</p>
   </header>
 
   <section class="hero">
-    <h1>A <em>listening ear</em> for the days worth remembering.</h1>
-    <p class="lede">
+    <h1 class="rise d1">A <em>listening ear</em> for the days worth remembering.</h1>
+    <p class="lede rise d2">
       Erduo stays quiet in the background, notices the conversations that matter,
-      and pairs them with the photos you were taking at the time. Then it writes the
-      recap, drafts the follow-up, and proposes the invite, so you can stay in the room.
+      and pairs them with the photos you took.
     </p>
 
-    <form class="join" id="join" novalidate>
-      <label class="sr" for="name">Your name</label>
+    <form class="join rise d3" id="join" novalidate>
+      <label for="name">Your name</label>
       <div class="field" id="field">
-        <input id="name" name="name" type="text" placeholder="Your name" autocomplete="given-name"
+        <input id="name" name="name" type="text" autocomplete="given-name"
                enterkeyhint="go" spellcheck="false" />
-        <button class="go" type="submit" aria-label="Join the waitlist">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M5 12h13M12 5l7 7-7 7" />
-          </svg>
+        <button class="go" type="submit">Join<span class="sr"> the waitlist</span>
+          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg>
         </button>
       </div>
-      <p class="hint" id="hint">Type your name and press enter. We will open a one-tap email for you.</p>
+      <p class="hint" id="hint">Type your name and press enter. We will open a one-tap&nbsp;email&nbsp;for&nbsp;you.</p>
       <div class="sent" id="sent" hidden>
         <p>Your mail app should be opening. Just press send.</p>
         <p class="quote" id="preview"></p>
@@ -431,53 +503,40 @@ footer a:hover { text-decoration: underline; }
     </form>
   </section>
 
-  <section class="cards" aria-label="What Erduo does">
-    <article class="card">
-      <div class="glyph" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12a9 9 0 0 1 18 0v6a3 3 0 0 1-3 3h-1"/>
-          <path d="M3 15v-3M21 15v-3"/>
-          <rect x="2" y="12" width="4" height="7" rx="2"/>
-          <rect x="18" y="12" width="4" height="7" rx="2"/>
-        </svg>
-      </div>
-      <h2>Ambient, never eager</h2>
-      <p>No record button, no note-taking, no meeting to start. Erduo simply listens for the things you would have wanted to write down.</p>
-    </article>
-
-    <article class="card">
-      <div class="glyph" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="15" rx="2.5"/>
-          <circle cx="8.5" cy="9.5" r="1.6"/>
-          <path d="M3 16l4.8-4.2a2 2 0 0 1 2.7.06L16 17"/>
-          <path d="M14 14.2l1.7-1.5a2 2 0 0 1 2.7.05L21 15"/>
-        </svg>
-      </div>
-      <h2>Matched to your album</h2>
-      <p>The dialogue worth keeping gets paired with the pictures you took beside it, so a recap looks like the moment actually felt.</p>
-    </article>
-
-    <article class="card">
-      <div class="glyph" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 5.5h16v13H4z"/>
-          <path d="M4 7l8 6 8-6"/>
-        </svg>
-      </div>
-      <h2>Already drafted</h2>
-      <p>A recap ready to post, a follow-up email in your own voice, a calendar invite with the time you both said out loud.</p>
-    </article>
+  <section class="does" aria-labelledby="does-title">
+    <div>
+      <h2 id="does-title">Stay in the room.</h2>
+      <p class="intro">Erduo writes the recap, drafts the follow-up, and proposes the invite.</p>
+    </div>
+    <ul class="points">
+      <li>
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M214,104a6,6,0,0,1-12,0,74,74,0,0,0-148,0c0,27.55,8.83,36.06,18.18,45.08,4.31,4.15,8.77,8.45,12.16,14.47C88.15,170.31,90,178.3,90,188a38,38,0,0,0,38,38c10.74,0,19.69-4.52,27.37-13.82a6,6,0,0,1,9.26,7.64C154.66,231.88,142.34,238,128,238a50.06,50.06,0,0,1-50-50c0-16.64-6.24-22.66-14.15-30.29C54.12,148.33,42,136.64,42,104a86,86,0,0,1,172,0Zm-37.14,58.81a6,6,0,0,0-8.19,2.19A10,10,0,0,1,150,160c0-10,5-16.67,10.8-24.4C167,127.35,174,118,174,104a46,46,0,0,0-92,0,6,6,0,0,0,12,0,34,34,0,0,1,68,0c0,10-5,16.67-10.8,24.4C145,136.65,138,146,138,160a22,22,0,0,0,41.05,11A6,6,0,0,0,176.86,162.81Z"/></svg>
+        <div>
+          <h3>Ambient, never eager</h3>
+          <p>No record button, no note-taking, no meeting to start. Erduo simply listens for the things you would have wanted to write down.</p>
+        </div>
+      </li>
+      <li>
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M208,34H80A14,14,0,0,0,66,48V66H48A14,14,0,0,0,34,80V208a14,14,0,0,0,14,14H176a14,14,0,0,0,14-14V190h18a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM78,48a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2v74.2l-20.1-20.1a14,14,0,0,0-19.8,0L94.2,178H80a2,2,0,0,1-2-2ZM178,208a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V80a2,2,0,0,1,2-2H66v98a14,14,0,0,0,14,14h98Zm30-30H111.17l67.41-67.41a2,2,0,0,1,2.83,0L210,139.17V176A2,2,0,0,1,208,178Zm-88-68A22,22,0,1,0,98,88,22,22,0,0,0,120,110Zm0-32a10,10,0,1,1-10,10A10,10,0,0,1,120,78Z"/></svg>
+        <div>
+          <h3>Matched to your album</h3>
+          <p>The dialogue worth keeping gets paired with the pictures you took beside it, so a recap looks like the moment actually felt.</p>
+        </div>
+      </li>
+      <li>
+        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M225.88,30.12a13.83,13.83,0,0,0-13.7-3.58l-.11,0L20.14,84.77A14,14,0,0,0,18,110.85l85.56,41.64L145.12,238a13.87,13.87,0,0,0,12.61,8c.4,0,.81,0,1.21-.05a13.9,13.9,0,0,0,12.29-10.09l58.2-191.93,0-.11A13.83,13.83,0,0,0,225.88,30.12Zm-8,10.4L159.73,232.43l0,.11a2,2,0,0,1-3.76.26l-40.68-83.58,49-49a6,6,0,1,0-8.49-8.49l-49,49L23.15,100a2,2,0,0,1,.31-3.74l.11,0L215.48,38.08a1.94,1.94,0,0,1,1.92.52A2,2,0,0,1,217.92,40.52Z"/></svg>
+        <div>
+          <h3>Already drafted</h3>
+          <p>A recap ready to post, a follow-up email in your own voice, a calendar invite with the time you both said out loud.</p>
+        </div>
+      </li>
+    </ul>
   </section>
 
-  <hr class="rule" style="margin-top: clamp(3rem, 8vw, 4.5rem)" />
-  <p class="quiet">
-    You decide when the ears are open: by hour, by place, or not at all.
-    Every recap is yours to keep, edit, or let go.
-  </p>
+  <section class="promise" aria-label="Your control">
+    <p>You decide when the ears are open: by hour, by place, or not at all.</p>
+    <p>Every recap is yours to keep, edit, or let go.</p>
+  </section>
 
   <footer>
     <a href="mailto:hi@erduo.ai">hi@erduo.ai</a>
@@ -487,6 +546,7 @@ footer a:hover { text-decoration: underline; }
 
 </main>
 
+<!-- Icons: Phosphor (phosphoricons.com), MIT licence. -->
 <script>
 (function () {
   var TO      = "hi@erduo.ai";
@@ -546,7 +606,7 @@ footer a:hover { text-decoration: underline; }
   input.addEventListener("input", function () {
     if (hint.classList.contains("warn")) {
       hint.classList.remove("warn");
-      hint.textContent = "Type your name and press enter. We will open a one-tap email for you.";
+      hint.textContent = "Type your name and press enter. We will open a one-tap\u00a0email\u00a0for\u00a0you.";
     }
   });
 
