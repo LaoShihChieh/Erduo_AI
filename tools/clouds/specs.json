@@ -1,0 +1,8 @@
+[
+ {"name":"cumulus-a","W":760,"H":380,"seed":11,"puffs":26,"base":0.8,"top":0.62},
+ {"name":"cumulus-b","W":760,"H":340,"seed":23,"puffs":22,"base":0.82,"top":0.55,"stretch":1.25},
+ {"name":"cumulus-c","W":800,"H":440,"seed":61,"puffs":30,"base":0.84,"top":0.72,"stretch":1.05},
+ {"name":"bank","W":1100,"H":300,"seed":37,"puffs":40,"base":0.78,"top":0.5,"stretch":1.5,"erosion":0.55},
+ {"name":"wisp-a","W":1100,"H":220,"seed":5,"type":"stratus","stretch":4,"scale":60,"soft":[0.05,0.9],"q":0.7},
+ {"name":"wisp-b","W":1000,"H":200,"seed":44,"type":"stratus","stretch":5,"scale":55,"soft":[0.05,0.9],"q":0.7}
+]

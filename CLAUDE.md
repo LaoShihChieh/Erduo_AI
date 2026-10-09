@@ -14,6 +14,8 @@ index.html               the whole page
 assets/erduo.png         logo: favicon, apple-touch-icon, page masthead
 assets/erduo-email.png   240px logo for the reply email
 assets/erduo-card.jpg    1200x630 link preview card
+assets/clouds/*.webp     generated cloud sprites for the parallax sky
+tools/clouds/            the generator that made them
 CNAME .nojekyll          GitHub Pages config
 waitlist/autoreply.gs    the Apps Script, a copy for the record
 ```
@@ -150,6 +152,16 @@ cost.
 with the real fonts, then cropped to exactly 1200x630 and saved as JPEG. It is
 54KB rather than 794KB as a PNG, because several chat apps skip previews on large
 images and a preview nobody fetches is worth nothing.
+
+**The clouds:** clouds stand for memories, and are the brand's one image. They
+are procedural, not photographs: `tools/clouds` renders them in headless
+Chromium as WebP with alpha, about 115KB for all six. Change `specs.json` and
+re-render rather than editing the files. By day each sprite is painted as is;
+by night the same file is used as a mask and filled with a moonlit gradient, so
+there is one set of files, not two. Lowering the opacity of white clouds made
+them flat grey slabs, which is why it works this way. Parallax is a few lines of
+script reading `data-shift`, off entirely under reduced motion. It moves only
+decoration, never the form.
 
 ## Tooling notes
 

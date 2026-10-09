@@ -1,0 +1,77 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#9cc7e6">
+<script>
+// Procedural cloud sprites: a density field of gaussian puffs, eroded by fbm
+// noise, lit from above by sampling density toward the light.
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function makeNoise(seed){
+  const r=rng(seed), p=new Uint8Array(512), g=[];
+  const perm=[...Array(256).keys()]; for(let i=255;i>0;i--){const j=Math.floor(r()*(i+1)); [perm[i],perm[j]]=[perm[j],perm[i]];}
+  for(let i=0;i<512;i++) p[i]=perm[i&255];
+  for(let i=0;i<256;i++){const a=r()*Math.PI*2; g.push([Math.cos(a),Math.sin(a)]);}
+  const fade=t=>t*t*t*(t*(t*6-15)+10);
+  function n(x,y){const X=Math.floor(x),Y=Math.floor(y),xf=x-X,yf=y-Y;
+    const h=(i,j)=>g[p[(p[(X+i)&255]+Y+j)&511]];
+    const d=(gg,dx,dy)=>gg[0]*dx+gg[1]*dy;
+    const u=fade(xf),v=fade(yf);
+    const a=d(h(0,0),xf,yf),b=d(h(1,0),xf-1,yf),c=d(h(0,1),xf,yf-1),e=d(h(1,1),xf-1,yf-1);
+    return (a+(b-a)*u)+((c+(e-c)*u)-(a+(b-a)*u))*v;}
+  return function fbm(x,y,oct){let s=0,a=.5,f=1,norm=0;for(let o=0;o<oct;o++){s+=a*n(x*f,y*f);norm+=a;a*=.5;f*=2.03;}return s/norm*0.5+0.5;};
+}
+const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
+
+function cloud(o){
+  const {W,H,seed,puffs,base,top,stretch=1,erosion=.5,soft=[.25,.7],flat=.5,scale=90,type='cumulus',absorb=.12,bump=14}=o;
+  const r=rng(seed), fbm=makeNoise(seed*7+1), D=new Float32Array(W*H);
+  const B=[];
+  if(type==='cumulus'){
+    for(let i=0;i<puffs;i++){                       // body
+      const t=.16+.68*r(), dome=Math.pow(Math.sin(Math.PI*t),.9);
+      const cy=base*H-(top*H)*dome*(.2+.7*r());
+      const rad=(.16+.2*r())*top*H*(.45+.55*dome)+H*.04;
+      B.push([t*W,cy,rad*stretch,rad,1]);
+    }
+    for(let i=0;i<puffs*2;i++){                     // cauliflower surface
+      const t=.14+.72*r(), dome=Math.pow(Math.sin(Math.PI*t),.9);
+      const cy=base*H-(top*H)*dome*(.75+.3*r());
+      const rad=(.05+.07*r())*top*H*(.5+.5*dome)+H*.02;
+      B.push([t*W,cy+rad*.4,rad*Math.min(stretch,1.3),rad,.8]);
+    }
+  }
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    let d=0;
+    if(type==='cumulus'){
+      for(const [cx,cy,rx,ry,w] of B){const dx=(x-cx)/rx,dy=(y-cy)/ry; const q=dx*dx+dy*dy; if(q<9) d+=w*Math.exp(-q*1.6);}
+      d*=1-ss(base*H-H*.05*flat, base*H+H*.09, y);
+      const n=fbm(x/scale/stretch,y/scale,5), m=fbm(x/(scale*.3),y/(scale*.3)+40,3);
+      d=d*(1-erosion+erosion*2*n)-(m-.5)*.3;
+    } else {                                         // stratus streaks
+      const ex=Math.sin(Math.PI*x/W), ey=Math.exp(-Math.pow((y/H-.5)/.2,2));
+      const n=fbm(x/(scale*stretch),y/scale,6);
+      d=Math.pow(ex,.6)*ey*Math.max(0,n-.38)*4.2;
+    }
+    const win=ss(0,W*.1,x)*ss(W,W*.9,x)*ss(0,H*.08,y)*ss(H,H*.92,y);
+    D[y*W+x]=d*win;
+  }
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const ctx=c.getContext('2d'), img=ctx.createImageData(W,H), px=img.data;
+  const step=Math.max(2,Math.round(H*.012)), hi=[253,254,255], lo=[184,205,223];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=y*W+x, d=D[i]; const a=ss(soft[0],soft[1],d); if(a<=0){px[i*4+3]=0;continue;}
+    let acc=0;                                       // march toward the light, up and a little left
+    for(let k=1;k<=10;k++){const yy=y-k*step, xx=x-Math.round(k*step*.35); if(yy<0||xx<0)break; acc+=Math.min(1.2,Math.max(0,D[yy*W+xx]));}
+    const R=3, xl=Math.max(0,x-R), xr=Math.min(W-1,x+R), yt=Math.max(0,y-R), yb=Math.min(H-1,y+R);
+    const gx=(D[y*W+xr]-D[y*W+xl])/(xr-xl), gy=(D[yb*W+x]-D[yt*W+x])/(yb-yt);
+    let nx=-gx*bump, ny=-gy*bump, nz=1; const nl=Math.hypot(nx,ny,nz); nx/=nl; ny/=nl; nz/=nl;
+    const lam=Math.max(0, nx*-.35+ny*-.75+nz*.56);   // light from the upper left, toward the viewer
+    let s=.28+.72*(.62*lam+.38*Math.exp(-absorb*acc))+.12*(1-y/H);
+    s=Math.min(1,Math.max(0,s));
+    for(let k=0;k<3;k++) px[i*4+k]=lo[k]+(hi[k]-lo[k])*s;
+    px[i*4+3]=Math.round(255*a);
+  }
+  ctx.putImageData(img,0,0); return c;
+}
+window.render=function(specs){
+  return specs.map(s=>{const c=cloud(s); document.body.appendChild(c); c.style.cssText='display:block;margin:8px;max-width:100%';
+    return {name:s.name, url:c.toDataURL('image/webp', s.q||.8)};});
+};
+</script>

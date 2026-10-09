@@ -32,16 +32,15 @@
    Radius system: anything you press or type into is a full pill; containers are
    20px; the logo keeps its own squircle. Layers: sky -1, content 0, grain 10. */
 :root {
-  --sky-top:      #f4fafe;
+  --sky-top:      #d3e7f6;
   --sky-mid:      #e2f0fa;
-  --sky-bottom:   #c9e3f4;
-  --cloud:        #fcfeff;
+  --sky-bottom:   #f1f8fd;
   --glass:        rgba(252,254,255,.72);
   --panel:        rgba(252,254,255,.55);
   --line:         rgba(13,42,61,.12);
   --ink:          #0d2a3d;
   --ink-soft:     #3f6579;
-  --ink-faint:    #4f7187;
+  --ink-faint:    #43657b;
   --accent:       #1b5ea8;
   --on-accent:    #fcfeff;
   --focus:        #1b5ea8;
@@ -50,13 +49,19 @@
   --grain:        .05;
   --glass-edge:   rgba(255,255,255,.55);
   --radius:       20px;
+  /* Cloud opacity by depth. By day they are bright and near solid; by night
+     the same shapes are painted moonlit instead: silver on top, slate below. */
+  --c-far:        .75;
+  --c-mid:        .92;
+  --c-near:       1;
+  --c-nest:       1;
+  --c-mem:        .95;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --sky-top:      #04121e;
     --sky-mid:      #071d2e;
     --sky-bottom:   #0b2a3e;
-    --cloud:        #123349;
     --glass:        rgba(18,51,73,.66);
     --panel:        rgba(18,51,73,.45);
     --line:         rgba(169,200,220,.16);
@@ -70,13 +75,18 @@
     --shadow-soft:  0 12px 32px -18px rgba(0,0,0,.6);
     --grain:        .07;
     --glass-edge:   rgba(255,255,255,.07);
+    --c-far:        .16;
+    --c-mid:        .24;
+    --c-near:       .3;
+    --c-nest:       .42;
+    --c-mem:        .3;
+    --night:        linear-gradient(180deg, #b9d3e8 0%, #6f93b2 38%, #2b4c68 100%);
   }
 }
 :root[data-theme="dark"] {
   --sky-top:      #04121e;
   --sky-mid:      #071d2e;
   --sky-bottom:   #0b2a3e;
-  --cloud:        #123349;
   --glass:        rgba(18,51,73,.66);
   --panel:        rgba(18,51,73,.45);
   --line:         rgba(169,200,220,.16);
@@ -90,6 +100,12 @@
   --shadow-soft:  0 12px 32px -18px rgba(0,0,0,.6);
   --grain:        .07;
   --glass-edge:   rgba(255,255,255,.07);
+  --c-far:        .16;
+  --c-mid:        .24;
+  --c-near:       .3;
+  --c-nest:       .42;
+  --c-mem:        .3;
+  --night:        linear-gradient(180deg, #b9d3e8 0%, #6f93b2 38%, #2b4c68 100%);
 }
 
 * { box-sizing: border-box; }
@@ -102,9 +118,6 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background:
-    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 46%, var(--sky-bottom) 100%)
-    fixed;
   color: var(--ink);
   font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-weight: 400;
@@ -125,27 +138,61 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ---------- sky + clouds ---------- */
+/* ---------- sky ----------
+   Clouds are memories, the brand's one image. Three depths of sky sit behind
+   the page and scroll slower the farther away they are, so reading the page
+   feels like moving through weather. Each layer's speed is its data-shift,
+   applied by the script at the bottom; with reduced motion they hold still.
+   The sprites are generated, not photographed: assets/clouds, about 115KB. */
+/* The gradient lives here rather than on body: a body background would paint
+   over this negative layer, and iOS ignores background-attachment: fixed. */
 .sky {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 46%, var(--sky-bottom) 100%);
 }
-.cloud {
+.layer { position: absolute; inset: 0; will-change: transform; }
+.puff {
   position: absolute;
-  border-radius: 50%;
-  background: var(--cloud);
-  filter: blur(60px);
-  opacity: .72;
-  will-change: transform;
+  left: var(--x);
+  top: var(--y);
+  width: max(var(--min, 0px), var(--w));
+  pointer-events: none;
 }
-.cloud.a { width: 62vw; height: 40vw; top: -12vw; left: -14vw; animation: driftA 64s ease-in-out infinite alternate; }
-.cloud.b { width: 50vw; height: 30vw; top: 22vh; right: -18vw; opacity: .55; animation: driftB 82s ease-in-out infinite alternate; }
-.cloud.c { width: 78vw; height: 34vw; bottom: -16vw; left: 6vw; opacity: .48; animation: driftC 96s ease-in-out infinite alternate; }
-@keyframes driftA { from { transform: translate3d(0,0,0) } to { transform: translate3d(7vw, 3vh, 0) } }
-@keyframes driftB { from { transform: translate3d(0,0,0) } to { transform: translate3d(-6vw, -4vh, 0) } }
-@keyframes driftC { from { transform: translate3d(0,0,0) } to { transform: translate3d(5vw, -3vh, 0) } }
+/* A cloud is painted, not an <img>, so the night sky can reuse its shape as a
+   mask and colour it moonlit. Each sprite class carries its file and ratio. */
+.cl { display: block; background: var(--src) center / 100% 100% no-repeat; }
+.s-ca { --src: url("assets/clouds/cumulus-a.webp"); aspect-ratio: 760 / 380; }
+.s-cb { --src: url("assets/clouds/cumulus-b.webp"); aspect-ratio: 760 / 340; }
+.s-cc { --src: url("assets/clouds/cumulus-c.webp"); aspect-ratio: 800 / 440; }
+.s-bk { --src: url("assets/clouds/bank.webp");      aspect-ratio: 1100 / 300; }
+.s-wa { --src: url("assets/clouds/wisp-a.webp");    aspect-ratio: 1100 / 220; }
+.s-wb { --src: url("assets/clouds/wisp-b.webp");    aspect-ratio: 1000 / 200; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cl {
+    background: var(--night);
+    -webkit-mask: var(--src) center / 100% 100% no-repeat;
+            mask: var(--src) center / 100% 100% no-repeat;
+  }
+}
+:root[data-theme="dark"] .cl {
+  background: var(--night);
+  -webkit-mask: var(--src) center / 100% 100% no-repeat;
+          mask: var(--src) center / 100% 100% no-repeat;
+}
+.far  .puff { opacity: var(--c-far); }
+.mid  .puff { opacity: var(--c-mid); }
+.near .puff { opacity: var(--c-near); }
+.flip { scale: -1 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .puff.d1 { animation: driftA 96s ease-in-out infinite alternate; }
+  .puff.d2 { animation: driftB 120s ease-in-out infinite alternate; }
+  .puff.d3 { animation: driftA 140s ease-in-out -40s infinite alternate-reverse; }
+}
+@keyframes driftA { to { transform: translate3d(6vw, 0, 0); } }
+@keyframes driftB { to { transform: translate3d(-5vw, 0, 0); } }
 
 /* ---------- layout ---------- */
 .wrap {
@@ -155,15 +202,43 @@ body::after {
 }
 
 /* ---------- masthead ---------- */
-.mast { text-align: center; }
-.logo {
+/* Full bleed, so the cloud bed is clipped at the screen edge rather than at
+   the gutter, and never makes the page scroll sideways. */
+.mast { text-align: center; margin: 0 -16px; overflow-x: clip; }
+/* The logo floats out of a bed of cloud: one cloud behind it, one in front of
+   its base. On arrival it rises out of them, it bobs while you read, and as
+   you scroll it lifts away faster than the clouds that held it. */
+.nest {
+  position: relative;
   width: clamp(72px, 13vw, 104px);
+  margin: 0 auto;
+}
+.nest .back, .nest .front {
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+}
+.nest .back  { z-index: 0; width: 470%; margin-left: -235%; top: -62%; }
+.nest .front { z-index: 2; width: 600%; margin-left: -300%; top: 50%; }
+.nest .cl { opacity: var(--c-nest); }
+.float { position: relative; z-index: 1; will-change: transform; }
+.logo {
+  width: 100%;
   height: auto;
   display: block;
-  margin: 0 auto;
   border-radius: 24%;
   box-shadow: var(--shadow);
 }
+.wordmark, .hanzi { position: relative; z-index: 3; }
+@media (prefers-reduced-motion: no-preference) {
+  .bob  { animation: bob 7s ease-in-out 1.6s infinite alternate; }
+  .logo { animation: emerge 1.8s cubic-bezier(.22,1,.36,1) .1s both; }
+  .nest .front .cl { animation: settle 2.2s cubic-bezier(.22,1,.36,1) both; }
+  .nest .back .cl  { animation: settle 2.6s cubic-bezier(.22,1,.36,1) both; }
+}
+@keyframes bob    { to { transform: translate3d(0, -6px, 0); } }
+@keyframes emerge { from { opacity: 0; transform: translate3d(0, 42%, 0) scale(.94); } }
+@keyframes settle { from { opacity: 0; transform: translate3d(0, 12px, 0) scale(1.04); } }
 .wordmark {
   margin: 1.1rem 0 0;
   font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
@@ -384,6 +459,57 @@ h1 em {
 }
 .points p { margin: 0; max-width: 52ch; color: var(--ink-soft); text-wrap: pretty; }
 
+/* ---------- memories ----------
+   The metaphor made literal: things people said, drifting past as cloud.
+   Decorative, so hidden from assistive tech; the line in the middle carries
+   the meaning. Each cloud scrolls at its own depth around that line. */
+.drift {
+  position: relative;
+  margin: clamp(4.5rem, 11vw, 7.5rem) 0 0;
+  min-height: clamp(30rem, 52vw, 38rem);
+  display: grid;
+  place-items: center;
+  overflow-x: clip;
+}
+.memories { position: absolute; inset: 0; }
+.memory {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  will-change: transform;
+}
+.memory .cl { opacity: var(--c-mem); }
+.memory span {
+  position: absolute;
+  left: 50%;
+  top: 64%;
+  width: 70%;
+  translate: -50% -50%;
+  text-align: center;
+  font-style: italic;
+  font-size: .98rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+.m1 { --x: 0%;  --y: 0%;  --w: 21rem; }
+.m2 { --x: 67%; --y: 6%;  --w: 19rem; }
+.m3 { --x: 5%;  --y: 66%; --w: 19rem; }
+.m4 { --x: 62%; --y: 70%; --w: 22rem; }
+.drift p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 25ch;
+  text-align: center;
+  font-size: clamp(1.6rem, 3.6vw, 2.35rem);
+  line-height: 1.22;
+  letter-spacing: -.022em;
+  text-wrap: balance;
+}
+.drift p em { font-style: italic; color: var(--accent); }
+
 /* ---------- the promise ---------- */
 .promise {
   margin: clamp(4.5rem, 11vw, 7.5rem) 0 0;
@@ -447,6 +573,13 @@ footer a:hover { text-decoration: underline; }
   .does { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
   .does > div { position: static; }
   .points li:first-child { padding-top: 1.5rem; border-top: 1px solid var(--line); }
+  .nest .front { top: 66%; }
+  .drift { min-height: 46rem; }
+  .m1 { --x: -6%; --y: 0%;  --w: 17rem; }
+  .m2 { --x: 34%; --y: 17%; --w: 16rem; }
+  .m3 { --x: -4%; --y: 64%; --w: 16rem; }
+  .m4 { --x: 30%; --y: 81%; --w: 17rem; }
+  .memory span { font-size: .9rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -461,15 +594,35 @@ footer a:hover { text-decoration: underline; }
 <body>
 
 <div class="sky" aria-hidden="true">
-  <div class="cloud a"></div>
-  <div class="cloud b"></div>
-  <div class="cloud c"></div>
+  <div class="layer far" data-shift="-.06">
+    <i class="puff cl s-wa d1" style="--x:-12vw;--y:4vh;--w:84vw;--min:520px"></i>
+    <i class="puff cl s-wb d2" style="--x:46vw;--y:48vh;--w:70vw;--min:440px"></i>
+    <i class="puff cl s-cb d3" style="--x:62vw;--y:30vh;--w:16vw;--min:120px"></i>
+    <i class="puff cl s-wa d1" style="--x:-20vw;--y:96vh;--w:76vw;--min:480px"></i>
+  </div>
+  <div class="layer mid" data-shift="-.18">
+    <i class="puff cl s-cb d2" style="--x:74vw;--y:14vh;--w:30vw;--min:220px"></i>
+    <i class="puff cl s-ca d1 flip" style="--x:-10vw;--y:58vh;--w:32vw;--min:230px"></i>
+    <i class="puff cl s-wb d3" style="--x:30vw;--y:118vh;--w:62vw;--min:420px"></i>
+    <i class="puff cl s-cc d2" style="--x:72vw;--y:150vh;--w:28vw;--min:220px"></i>
+  </div>
+  <div class="layer near" data-shift="-.38">
+    <i class="puff cl s-bk d1" style="--x:-40vw;--y:92vh;--w:62vw;--min:420px"></i>
+    <i class="puff cl s-ca d3 flip" style="--x:80vw;--y:128vh;--w:40vw;--min:280px"></i>
+    <i class="puff cl s-bk d2" style="--x:-14vw;--y:196vh;--w:56vw;--min:380px"></i>
+  </div>
 </div>
 
 <main class="wrap">
 
-  <header class="mast rise">
-    <img class="logo" src="assets/erduo.png" alt="Erduo" width="753" height="753" />
+  <header class="mast">
+    <div class="nest">
+      <div class="back" data-shift=".22" aria-hidden="true"><i class="cl s-cc"></i></div>
+      <div class="float" data-shift="-.16"><div class="bob">
+        <img class="logo" src="assets/erduo.png" alt="Erduo" width="753" height="753" />
+      </div></div>
+      <div class="front" data-shift=".4" aria-hidden="true"><i class="cl s-bk"></i></div>
+    </div>
     <p class="wordmark"><span class="script">E</span>rduo<span class="sr">.ai</span></p>
     <p class="hanzi"><b>耳朵</b> &nbsp;·&nbsp; ears</p>
   </header>
@@ -501,6 +654,16 @@ footer a:hover { text-decoration: underline; }
         </div>
       </div>
     </form>
+  </section>
+
+  <section class="drift" aria-labelledby="drift-line">
+    <div class="memories" aria-hidden="true">
+      <div class="memory m1" data-shift="-.1" data-centre><i class="cl s-ca"></i><span>the bakery on Dihua Street she kept mentioning</span></div>
+      <div class="memory m2" data-shift="-.06" data-centre><i class="cl s-cb"></i><span>Sunday at four. Bring the photos.</span></div>
+      <div class="memory m3" data-shift=".12" data-centre><i class="cl s-cc"></i><span>what Grandpa said about the old house</span></div>
+      <div class="memory m4" data-shift=".06" data-centre><i class="cl s-bk"></i><span>her flight lands Thursday night</span></div>
+    </div>
+    <p id="drift-line">Most of what we say drifts off like <em>cloud</em>. Erduo keeps the parts worth remembering.</p>
   </section>
 
   <section class="does" aria-labelledby="does-title">
@@ -656,6 +819,58 @@ footer a:hover { text-decoration: underline; }
   }
 })();
 </script>
+<script>
+(function () {
+  // Parallax. Anything with data-shift moves that many px per px scrolled, on
+  // top of its normal motion: negative drifts up faster, positive lags behind.
+  // data-centre measures from the moment its section is centred instead of from
+  // the top, and is capped so a cloud never drifts onto its neighbour; the cap
+  // shrinks with the screen, where the clouds stack closer. Decoration only: it never touches the form, and stays off for
+  // anyone who asked for less motion.
+  var els = [].slice.call(document.querySelectorAll("[data-shift]"));
+  var still = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  var items = [], queued = false, on = false;
+  if (!els.length) return;
 
+  function measure() {
+    var vh = window.innerHeight, y = window.pageYOffset;
+    var cap = Math.min(72, window.innerWidth * .09);
+    items = els.map(function (el) {
+      var centred = el.hasAttribute("data-centre"), anchor = 0;
+      if (centred) {
+        var box = el.parentNode.parentNode.getBoundingClientRect();
+        anchor = box.top + y + box.height / 2 - vh / 2;
+      }
+      return { el: el, shift: parseFloat(el.getAttribute("data-shift")) || 0,
+               anchor: anchor, cap: centred ? cap : Infinity };
+    });
+  }
+  function frame() {
+    queued = false;
+    var y = window.pageYOffset;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i], d = it.shift * (y - it.anchor);
+      d = Math.max(-it.cap, Math.min(it.cap, d));
+      it.el.style.transform = "translate3d(0," + d.toFixed(1) + "px,0)";
+    }
+  }
+  function onScroll() { if (!queued) { queued = true; requestAnimationFrame(frame); } }
+  function onResize() { if (on) { measure(); frame(); } }
+  function apply() {
+    on = !(still && still.matches);
+    if (on) {
+      measure(); frame();
+      window.addEventListener("scroll", onScroll, { passive: true });
+    } else {
+      window.removeEventListener("scroll", onScroll);
+      els.forEach(function (el) { el.style.transform = ""; });
+    }
+  }
+  window.addEventListener("resize", onResize);
+  window.addEventListener("load", onResize);
+  if (still && still.addEventListener) still.addEventListener("change", apply);
+  apply();
+})();
+</script>
 </body>
 </html>
